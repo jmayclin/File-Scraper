@@ -10,13 +10,9 @@ def inputs():
         path = '.'
     
     print("Would you like to restrict the downloaded link to a certain word? e.g. pdf")
-    query_word = input("Something must be inputted:")
+    query_word = input("Enter query word or press enter:")
     
-    print("Would you like to check before you download each file?")
-    check = input("(Y)es or (N)o:")
-    check = False if check.lower() == 'n' else True
-    
-    return url, path, query_word, check
+    return url, path, query_word
     
 def create_subdirectory(path):
     if path == '.': return
@@ -24,7 +20,7 @@ def create_subdirectory(path):
         os.makedirs(path)
 
 def find_hrefs(request):
-    string = request.text
+    string = request.text.lower()
     begin = 0
     markers = []
     while string.find('a href=', begin) != -1:
@@ -32,18 +28,22 @@ def find_hrefs(request):
         end = string.find('>', start)
         markers.append((start, end))
         begin = end
-    contained = [string[index[0]:index[1]] for index in markers]
+    contained = [string[index[0]:index[1]].replace('\"', '') for index in markers]
     return contained
     
 def constrain_hrefs(contained, query_word):
     print(query_word)
     formats = [s for s in contained if (s.lower().find(query_word.lower()) != -1)]
-    print("Found the following:")
-    for link in formats:
-        print(link)
     return formats
     
-def download(links, path, url, check):
+def download(links, path, url):
+    print("Found {} links matching criteria".format(len(links)))
+    for link in links:
+        print(link)
+    option = input('\n(D)ownload all,(A)gree to each download, or (Q)uit? ')
+    if option.lower() == 'q':
+        return
+    check = False if option.lower() == 'd' else True
     url = url[:url.rfind('/')]
     for link in links:
         if check:
@@ -59,16 +59,17 @@ def download(links, path, url, check):
 
 #url = 'https://stats200.stanford.edu/lectures.html'
 #query_word = 'lecture'
-url, path, query_word, check = inputs()
+url, path, query_word = inputs()
 #print(query_word.strip() == 'Lecture')
 
 #url, query_word, path, check = 'https://stats200.stanford.edu/lectures.html', 'lecture', './tmp2', True
 r = requests.get(url)
+print(r.text)
 all_links = find_hrefs(r)
 to_download = constrain_hrefs(all_links, query_word)
 
 create_subdirectory(path)
-download(to_download, path, url, check)
+download(to_download, path, url)
 
 
     

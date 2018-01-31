@@ -1,6 +1,14 @@
+'''
+download_script.py
+Script to download hyperlinks from a url. Python3
+James Mayclin
+'''
 import requests
 import os
 
+'''
+Handles user input and returns it as a tuple.
+'''
 def inputs():
     url = input("Enter the url of the webpage that contains the links to download:")
     
@@ -13,12 +21,18 @@ def inputs():
     query_word = input("Enter query word or press enter:")
     
     return url, path, query_word
-    
+
+'''
+Creates user specified subdirectory to download files to
+'''
 def create_subdirectory(path):
     if path == '.': return
     if not os.path.exists(path):
         os.makedirs(path)
 
+'''
+Parses HTML text for hyperlinks and returns them in a list
+'''
 def find_hrefs(request):
     string = request.text.lower()
     begin = 0
@@ -30,12 +44,19 @@ def find_hrefs(request):
         begin = end
     contained = [string[index[0]:index[1]].replace('\"', '') for index in markers]
     return contained
-    
+
+'''
+Removes hyperlinks that don't contain 'query_word'
+'''
 def constrain_hrefs(contained, query_word):
     print(query_word)
     formats = [s for s in contained if (s.lower().find(query_word.lower()) != -1)]
     return formats
-    
+
+'''
+Handles downloading of hyperlinks contained in 'links' at 'url'
+and downloads them to 'path'
+'''
 def download(links, path, url):
     print("Found {} links matching criteria".format(len(links)))
     for link in links:
@@ -57,12 +78,10 @@ def download(links, path, url):
         with open(full_path, 'wb')as f:
             f.write(r.content)
 
-#url = 'https://stats200.stanford.edu/lectures.html'
-#query_word = 'lecture'
+'''
+Run method - calls methods required for program to function
+'''
 url, path, query_word = inputs()
-#print(query_word.strip() == 'Lecture')
-
-#url, query_word, path, check = 'https://stats200.stanford.edu/lectures.html', 'lecture', './tmp2', True
 r = requests.get(url)
 print(r.text)
 all_links = find_hrefs(r)
@@ -70,6 +89,3 @@ to_download = constrain_hrefs(all_links, query_word)
 
 create_subdirectory(path)
 download(to_download, path, url)
-
-
-    

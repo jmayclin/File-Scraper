@@ -74,8 +74,10 @@ def download(links, path, url):
         full_url = url + '/' + link
         r = requests.get(full_url)
         print('Downloading ', link)
+        if link.find('/') != -1:
+            link = link[link.find('/'):]
         full_path = path + '/' + link
-        with open(full_path, 'wb')as f:
+        with open(full_path, 'wb') as f:
             f.write(r.content)
 
 '''
